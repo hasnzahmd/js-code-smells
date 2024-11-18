@@ -1,41 +1,16 @@
 const fs = require('fs');
-const path = require('path');
 const acorn = require('acorn');
 const walk = require("acorn-walk");
-const { maxFunctionLength, paramsLimit, camelCasePattern, snakeCasePattern, pascalCasePattern, nestingLimit, classMethodLimit, validNumbers } = require('./constants');
-
-// Function to read JavaScript files in a directory
-function readFilesInDirectory(dir) {
-    let jsFiles = [];
-
-    try {
-        const stat = fs.statSync(dir);
-
-        if (stat.isFile() && path.extname(dir) === '.js') {
-            // If the path is a file and has a .js extension, add it to the array
-            jsFiles.push(dir);
-        } else if (stat.isDirectory()) {
-            // If the path is a directory, read its contents
-            const files = fs.readdirSync(dir);
-
-            files.forEach(file => {
-                const fullPath = path.join(dir, file);
-                const fileStat = fs.statSync(fullPath);
-
-                // Exclude node_modules directory
-                if (fileStat.isDirectory() && file !== 'node_modules') {
-                    jsFiles = jsFiles.concat(readFilesInDirectory(fullPath)); // Recursively read subdirectories
-                } else if (fileStat.isFile() && path.extname(fullPath) === '.js') {
-                    jsFiles.push(fullPath);
-                }
-            });
-        }
-    } catch (error) {
-        console.error(`Error reading directory or file ${dir}:`, error);
-        throw error;
-    }
-    return jsFiles;
-}
+const { 
+    maxFunctionLength, 
+    paramsLimit, 
+    camelCasePattern, 
+    snakeCasePattern, 
+    pascalCasePattern, 
+    nestingLimit, 
+    classMethodLimit, 
+    validNumbers 
+} = require('./constants');
 
 function getDifference(str1, str2) {
     if (str2.startsWith(str1)) {
@@ -44,15 +19,13 @@ function getDifference(str1, str2) {
     return '';
 }
 
-// Function to detect code smells
-async function detectCodeSmells(directory, file, codeSmells) {
+// Function to find code smells
+async function findCodeSmells(directory, file, codeSmells) {
     
     const code = fs.readFileSync(file, 'utf8');
     const ast = acorn.parse(code, { ecmaVersion: 2021, sourceType: "module", locations: true });
 
     let filePath = getDifference(directory, file);
-    // if(filePath.startsWith('\\'))
-    //     filePath = filePath.slice(1);
     
     // Variable usage tracking
     let declaredVariables = new Set();
@@ -72,7 +45,7 @@ async function detectCodeSmells(directory, file, codeSmells) {
             }
 
             // Detect excessive function parameters
-            if (node.params.length > paramsLimit) {  // Threshold for excessive parameters
+            if (node.params.length > paramsLimit) {
                 codeSmells.excessiveParameters.push({
                     file: filePath,
                     line: node.loc.start.line,
@@ -90,11 +63,8 @@ async function detectCodeSmells(directory, file, codeSmells) {
             if (parent.type === 'VariableDeclarator' && parent.id && parent.id.name)
                 functionName = parent.id.name;
 
-            else if (parent.type === 'CallExpression' && parent.callee && parent.callee.property){
-                //const grandParent = ancestors[ancestors.length - 3]; 
-                //functionName = grandParent.id.name;
-                functionName = parent.callee.property.name
-            }
+            else if (parent.type === 'CallExpression' && parent.callee && parent.callee.property)
+                functionName = parent.callee.property.name;
 
             else if (parent.type === 'Property' && parent.key && parent.key.name)
                 functionName = parent.key.name;
@@ -130,8 +100,6 @@ async function detectCodeSmells(directory, file, codeSmells) {
             }
         },
         VariableDeclaration(node, ancestors) {
-            // Detect inconsistent variable naming
-
             node.declarations.forEach(declaration => {
                 if (!declaration.id.name) return;
 
@@ -142,6 +110,7 @@ async function detectCodeSmells(directory, file, codeSmells) {
                 const isSnakeCase = snakeCasePattern.test(declaration.id.name);
                 const isPascalCase = pascalCasePattern.test(declaration.id.name);
 
+                // Detect inconsistent variable naming
                 // Flag if the name doesn't match camelCase, snake_case, or PascalCase
                 if (!isCamelCase && !isSnakeCase && !isPascalCase) {
                     codeSmells.inconsistentNaming.push({
@@ -155,7 +124,7 @@ async function detectCodeSmells(directory, file, codeSmells) {
         IfStatement(node, ancestors) {
             // Detect spaghetti code (excessive nesting)
             const currentNesting = ancestors.filter(ancestor => ancestor.type === 'IfStatement').length;
-            if (currentNesting > nestingLimit) {  // Example threshold for "spaghetti"
+            if (currentNesting > nestingLimit) {
                 codeSmells.spaghettiCode.push({
                     file: filePath,
                     line: node.loc.start.line,
@@ -195,4 +164,4 @@ async function detectCodeSmells(directory, file, codeSmells) {
     return codeSmells;
 }
 
-module.exports = { readFilesInDirectory, detectCodeSmells };
+module.exports = { findCodeSmells };

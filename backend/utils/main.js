@@ -1,9 +1,10 @@
-const { readFilesInDirectory, detectCodeSmells } = require('./helper_functions');
+const { findCodeSmells } = require('./find-code-smells');
+const { getJsFilesInDirectory } = require('./get-js-files');
 
-// Main function to check all JavaScript files in a project
-function checkProject(directory) {
+// Main function which gets all the JS files in a directory and finds code smells in them
+function detectCodeSmells(directory) {
     try {
-        const jsFiles = readFilesInDirectory(directory);
+        const jsFiles = getJsFilesInDirectory(directory);
 
         const codeSmells = {
             longFunctions: [],
@@ -16,7 +17,7 @@ function checkProject(directory) {
         };
 
         jsFiles.forEach(async file => {
-            await detectCodeSmells(directory, file, codeSmells);
+            await findCodeSmells(directory, file, codeSmells);
         });
 
         return codeSmells;
@@ -29,4 +30,4 @@ function checkProject(directory) {
     }
 }
 
-module.exports = { checkProject }
+module.exports = { detectCodeSmells }

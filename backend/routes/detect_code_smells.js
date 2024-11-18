@@ -1,5 +1,5 @@
 const express = require('express');
-const { checkProject } = require('../utils/main.js');
+const { detectCodeSmells } = require('../utils/main.js');
 
 const router = express.Router();
 
@@ -9,7 +9,7 @@ router.post('/detect-code-smells', async (req, res) => {
         return res.status(400).json({ error: 'Please enter a valid directory path.' });
     }
     try {
-        const codeSmells = checkProject(path);
+        const codeSmells = detectCodeSmells(path);
         res.status(200).json(codeSmells);
         console.log("Response sent");
 
