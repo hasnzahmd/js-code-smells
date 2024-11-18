@@ -6,6 +6,7 @@ function detectCodeSmells(directory) {
     try {
         const jsFiles = getJsFilesInDirectory(directory);
 
+        // Object to store all code smells found in the project
         const codeSmells = {
             longFunctions: [],
             magicNumbers: [],
