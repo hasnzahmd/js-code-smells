@@ -5,11 +5,12 @@ const { getJsFilesInDirectory } = require('./get-js-files');
 function detectCodeSmells(directory) {
     try {
         const jsFiles = getJsFilesInDirectory(directory);
+        console.log('Files count:', jsFiles.length);
 
         // Object to store all code smells found in the project
         const codeSmells = {
+            files_read: 0,
             longFunctions: [],
-            magicNumbers: [],
             unusedVariables: [],
             inconsistentNaming: [],
             excessiveParameters: [],
@@ -21,6 +22,7 @@ function detectCodeSmells(directory) {
             await findCodeSmells(directory, file, codeSmells);
         });
 
+        console.log('Files read:', codeSmells.files_read)
         return codeSmells;
 
     } catch (error) {

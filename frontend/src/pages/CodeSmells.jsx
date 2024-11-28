@@ -41,7 +41,7 @@ const CodeSmells = () => {
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                    {data.length === 0 ? 
+                    {data?.length === 0 ? 
                         <tr className='absolute top-[58%] left-1/2 transform -translate-x-1/2 -translate-y-1/2'>
                             <td colSpan={columns.length + 1}>
                                 None detected

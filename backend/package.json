@@ -10,10 +10,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "acorn": "^8.14.0",
     "acorn-walk": "^8.3.4",
-    "acron": "^1.0.5",
     "cors": "^2.8.5",
-    "express": "^4.21.0",
+    "express": "^4.21.1",
     "fs": "^0.0.1-security",
     "nodemon": "^3.1.7",
     "path": "^0.12.7"
