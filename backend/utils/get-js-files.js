@@ -16,7 +16,14 @@ function getJsFilesInDirectory(dir) {
 
             files.forEach(file => {
                 const fullPath = path.join(dir, file);
-                const fileStat = fs.statSync(fullPath);
+                let fileStat;
+
+                try {
+                    fileStat = fs.statSync(fullPath);
+                } catch (error) {
+                    console.log(`Skipping file or directory due to error: ${fullPath}`);
+                    return; // Skip this file or directory
+                }
 
                 // Exclude node_modules directory
                 if (fileStat.isDirectory() && file !== 'node_modules') {
