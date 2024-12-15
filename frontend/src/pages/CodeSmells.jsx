@@ -15,6 +15,7 @@ const CodeSmells = () => {
         try {
             const response = await axios.post('http://localhost:5050/detect-code-smells', { path: directory.trim() });
             if (response.status === 200) {
+                console.log('response', response.data);
                 setCodeSmells(response.data);
                 console.log(JSON.stringify(response.data, null, 2));
             }
@@ -30,7 +31,7 @@ const CodeSmells = () => {
                 <thead className="bg-gray-50 sticky top-0">
                     <tr>
                         <th className="px-6 py-3 text-sm text-left font-medium text-gray-600 tracking-wider">#</th>
-                        {columns.map((col) => (
+                        {columns?.map((col) => (
                             <th
                                 key={col}
                                 className={`px-6 py-3 text-sm ${col === 'File' ? 'text-left' : 'text-center'} font-medium text-gray-600 tracking-wider`}
@@ -41,14 +42,14 @@ const CodeSmells = () => {
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                    {data?.length === 0 ? 
+                    {data?.length === 0 ?
                         <tr className='absolute top-[58%] left-1/2 transform -translate-x-1/2 -translate-y-1/2'>
                             <td colSpan={columns.length + 1}>
                                 None detected
                             </td>
-                        </tr> 
+                        </tr>
                         :
-                        data.map((row, idx) => (
+                        data?.map((row, idx) => (
                             <tr key={idx}>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-b text-left">{idx + 1}</td>
                                 {columns.map((col) => (
@@ -89,12 +90,13 @@ const CodeSmells = () => {
 
             {codeSmells && (
                 <div className='flex flex-col'>
-                    {codeSmellTypes.map(({ type, dataKey, columns }) => (
+                    {codeSmellTypes?.map(({ type, dataKey, columns }) => (
                         <div key={type} className="mt-8">
                             <h2 className="text-xl font-semibold text-blue-900 mb-2">{type}</h2>
                             {renderTable(codeSmells[dataKey], columns)}
                         </div>
                     ))}
+
                 </div>
             )}
         </div>

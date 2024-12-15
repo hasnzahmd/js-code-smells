@@ -15,14 +15,20 @@ function detectCodeSmells(directory) {
             inconsistentNaming: [],
             excessiveParameters: [],
             spaghettiCode: [],
-            godObject: []
+            godObject: [],
+            magicNumbers: [],
+            emptyBlocks: [],
+            complexConditions: [],
+            deepInheritance: [],
+            commentedOutCode: [],
+            largeFiles: []
         };
 
         jsFiles.forEach(async file => {
             await findCodeSmells(directory, file, codeSmells);
         });
 
-        console.log('Files read:', codeSmells.files_read)
+        console.log('Files read:', codeSmells.files_read);
         return codeSmells;
 
     } catch (error) {
@@ -33,4 +39,4 @@ function detectCodeSmells(directory) {
     }
 }
 
-module.exports = { detectCodeSmells }
+module.exports = { detectCodeSmells };
