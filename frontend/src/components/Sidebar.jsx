@@ -38,7 +38,7 @@ export function AppSidebar() {
   };
 
   const allSelected = selectedSmellNames?.length === codeSmellTypes?.length;
-  const disabled = !directory || !selectedSmellNames?.length
+  const disabled = !directory || !selectedSmellNames?.length || loading
 
   return (
     <Sidebar>

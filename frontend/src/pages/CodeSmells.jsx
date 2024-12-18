@@ -27,12 +27,12 @@ const CodeSmells = () => {
 
     return (
         <div>
-            <Card className='border-0 border-b rounded-none'>
+            <Card className='border-0 border-b rounded-none fixed w-[69.9rem]'>
                 <CardHeader>
                     <CardTitle className="text-center border-none">Detect Javascript Code Smells</CardTitle>
                 </CardHeader>
             </Card>
-            <div className="w-[69.9rem] p-4 no-scrollbar">
+            <div className="w-[69.9rem] p-4 no-scrollbar pt-[5.5rem]">
                 <div className="gap-4 grid grid-cols-1">
                     {loading ? (
                         <SkeletonCardList count={3} />
