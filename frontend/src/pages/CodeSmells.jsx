@@ -1,29 +1,10 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { codeSmellTypes } from '../utils/constants';
+import useStore from '../store/store';
 
 const CodeSmells = () => {
+    const { codeSmells, error, loading, detectCodeSmells } = useStore();
     const [directory, setDirectory] = useState('');
-    const [codeSmells, setCodeSmells] = useState(null);
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-
-    const detectCodeSmells = async () => {
-        setError('');
-        setLoading(true);
-        setCodeSmells(null);
-        try {
-            const response = await axios.post('http://localhost:5050/detect-code-smells', { path: directory.trim() });
-            if (response.status === 200) {
-                console.log('response', response.data);
-                setCodeSmells(response.data);
-                console.log(JSON.stringify(response.data, null, 2));
-            }
-        } catch (err) {
-            setError(err.response?.data?.error || 'An error occurred');
-        }
-        setLoading(false);
-    };
 
     const renderTable = (data, columns) => (
         <div className="overflow-auto h-64 border rounded relative">
@@ -78,7 +59,7 @@ const CodeSmells = () => {
                     className="border border-gray-300 p-2 rounded-lg"
                 />
                 <button
-                    onClick={directory ? detectCodeSmells : undefined}
+                    onClick={directory ? ()=>{detectCodeSmells(directory)} : undefined}
                     className={`mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-8 rounded self-center ${!directory && 'cursor-not-allowed opacity-70'}`}
                 >
                     Detect
@@ -88,7 +69,7 @@ const CodeSmells = () => {
             {loading && <p className='text-center mt-10'>Loading...</p>}
             {error && <p className='text-center text-red-500 mt-10'>{error}</p>}
 
-            {codeSmells && (
+            {Object.keys(codeSmells).length > 0 && (
                 <div className='flex flex-col'>
                     {codeSmellTypes?.map(({ type, dataKey, columns }) => (
                         <div key={type} className="mt-8">
@@ -96,7 +77,6 @@ const CodeSmells = () => {
                             {renderTable(codeSmells[dataKey], columns)}
                         </div>
                     ))}
-
                 </div>
             )}
         </div>
