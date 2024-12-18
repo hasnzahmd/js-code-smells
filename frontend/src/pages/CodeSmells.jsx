@@ -1,86 +1,138 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { codeSmellTypes } from '../utils/constants';
 import useStore from '../store/store';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+  } from "@/components/ui/accordion"  
 
 const CodeSmells = () => {
-    const { codeSmells, error, loading, detectCodeSmells } = useStore();
-    const [directory, setDirectory] = useState('');
+    const { codeSmells, selectedSmells, loading } = useStore();
+    const [hasCodeSmells, setHasCodeSmells] = useState(false);
+    const [sortedCodeSmells, setSortedCodeSmells] = useState([]);
 
-    const renderTable = (data, columns) => (
-        <div className="overflow-auto h-64 border rounded relative">
-            <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50 sticky top-0">
-                    <tr>
-                        <th className="px-6 py-3 text-sm text-left font-medium text-gray-600 tracking-wider">#</th>
-                        {columns?.map((col) => (
-                            <th
-                                key={col}
-                                className={`px-6 py-3 text-sm ${col === 'File' ? 'text-left' : 'text-center'} font-medium text-gray-600 tracking-wider`}
-                            >
-                                {col}
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                    {data?.length === 0 ?
-                        <tr className='absolute top-[58%] left-1/2 transform -translate-x-1/2 -translate-y-1/2'>
-                            <td colSpan={columns.length + 1}>
-                                None detected
-                            </td>
-                        </tr>
-                        :
-                        data?.map((row, idx) => (
-                            <tr key={idx}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-b text-left">{idx + 1}</td>
-                                {columns.map((col) => (
-                                    <td key={col} className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-b ${col === 'File' ? 'text-left' : 'text-center'}`}>
-                                        {row[col.charAt(0).toLowerCase() + col.split(' ').join('').slice(1)]}
-                                    </td>
-                                ))}
-                            </tr>
-                        ))
-                    }
-                </tbody>
-            </table>
-        </div>
-    );
+    useEffect(() => {
+        if (Object.keys(codeSmells).length > 0) {
+            setHasCodeSmells(true);
+            setSortedCodeSmells([...selectedSmells].sort((a, b) => codeSmells[b.dataKey].length - codeSmells[a.dataKey].length));
+        }
+    }, [codeSmells, selectedSmells]);
 
     return (
-        <div className="max-w-5xl mx-auto my-10">
-            <h1 className="text-3xl font-bold mb-6 text-center text-blue-900">Detect JavaScript Code Smells</h1>
-            <h2 className="text-xl mb-6 text-center text-blue-900">Enter directory path of a file or folder</h2>
-            <div className="mb-4 flex flex-col justify-center">
-                <input
-                    type="text"
-                    value={directory}
-                    onChange={(e) => setDirectory(e.target.value)}
-                    placeholder="Enter directory path"
-                    className="border border-gray-300 p-2 rounded-lg"
-                />
-                <button
-                    onClick={directory ? ()=>{detectCodeSmells(directory)} : undefined}
-                    className={`mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-8 rounded self-center ${!directory && 'cursor-not-allowed opacity-70'}`}
-                >
-                    Detect
-                </button>
-            </div>
-
-            {loading && <p className='text-center mt-10'>Loading...</p>}
-            {error && <p className='text-center text-red-500 mt-10'>{error}</p>}
-
-            {Object.keys(codeSmells).length > 0 && (
-                <div className='flex flex-col'>
-                    {codeSmellTypes?.map(({ type, dataKey, columns }) => (
-                        <div key={type} className="mt-8">
-                            <h2 className="text-xl font-semibold text-blue-900 mb-2">{type}</h2>
-                            {renderTable(codeSmells[dataKey], columns)}
-                        </div>
-                    ))}
+        <div>
+            <Card className='border-0 border-b rounded-none'>
+                <CardHeader>
+                    <CardTitle className="text-center border-none">Detect Javascript Code Smells</CardTitle>
+                </CardHeader>
+            </Card>
+            <div className="w-[69.9rem] p-4 no-scrollbar">
+                <div className="gap-4 grid grid-cols-1">
+                    {loading ? (
+                        <SkeletonCardList count={3} />
+                    ) : hasCodeSmells && (
+                        <>
+                            {sortedCodeSmells.map(({ type, dataKey, columns, description }) => (
+                                <Accordion type="single" collapsible className="w-full">
+                                    <AccordionItem value="item-1">
+                                        <Card key={type}>
+                                            <AccordionTrigger className='hover:no-underline '>
+                                                <CardHeader className='w-full'>
+                                                    <CardTitle className="flex flex-col gap-2 items-start w-full">
+                                                        <div className="flex justify-between w-full">
+                                                            <p>{type}</p>
+                                                            <span
+                                                                className={`font-medium text-lg ${codeSmells[dataKey].length === 0 ? 'text-blue-500' : 'text-red-500'}`}
+                                                            >
+                                                                {codeSmells[dataKey].length} detected
+                                                            </span>
+                                                        </div>
+                                                        <p className="font-normal text-base text-gray-500">{description}.</p>
+                                                    </CardTitle>
+                                                </CardHeader>
+                                            </AccordionTrigger>
+                                            <AccordionContent>
+                                                <ScrollArea maxHeight="max-h-96">
+                                                    <CardContent>
+                                                        {codeSmells[dataKey].length > 0 && renderTable(codeSmells[dataKey], columns)}
+                                                    </CardContent>
+                                                    <ScrollBar orientation="horizontal" />
+                                                </ScrollArea>
+                                            </AccordionContent>
+                                        </Card>
+                                    </AccordionItem>
+                                </Accordion>
+                            ))}
+                        </>
+                    )}
                 </div>
-            )}
+            </div>
         </div>
     );
 };
 
 export default CodeSmells;
+
+const renderTable = (data, columns) => (
+    <Table>
+        <TableHeader>
+            <TableRow className="bg-gray-50 rounded-md">
+                <TableHead className="text-left">#</TableHead>
+                {columns?.map((col) => (
+                    <TableHead key={col} className={`${col === 'File' ? 'text-left' : 'text-center'}`}>{col}</TableHead>
+                ))}
+            </TableRow>
+        </TableHeader>
+        <TableBody className={`relative ${data?.length === 0 && 'h-60'}`}>
+            {data?.map((row, idx) => (
+                <TableRow key={idx}>
+                    <TableCell className="text-left">{idx + 1}</TableCell>
+                    {columns.map((col) => (
+                        <TableCell
+                            key={col}
+                            className={col === 'File' ? 'text-left' : 'text-center'}
+                        >
+                            {row[col.charAt(0).toLowerCase() + col.split(' ').join('').slice(1)]}
+                        </TableCell>
+                    ))}
+                </TableRow>
+            ))}
+        </TableBody>
+    </Table>
+);
+
+const SkeletonCardList = ({ count }) => {
+    return (
+        <div className="gap-10 mt-10 grid grid-cols-1">
+            {Array.from({ length: count }).map((_, idx) => (
+                <SkeletonCard key={idx} />
+            ))}
+        </div>
+    );
+};
+
+const SkeletonCard = () => (
+    <Card className="space-y-4 p-4 border-none">
+        <div className='flex justify-between'>
+            <Skeleton className="h-6 w-1/2" />
+            <Skeleton className="h-4 w-[10%]" />
+        </div>
+        <div className='flex flex-col gap-4'>
+            <div className="flex justify-between">
+                {Array.from({ length: 4 }).map((_, idx) => (
+                    <Skeleton key={idx} className="h-4 w-[5%]" />
+                ))}
+            </div>
+            <div className="space-y-2 flex flex-col justify-center">
+                {Array.from({ length: 3 }).map((_, idx) => (
+                    <Skeleton key={idx} className="h-4 w-[90%]" />
+                ))}
+            </div>
+        </div>
+    </Card>
+);

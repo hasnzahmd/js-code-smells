@@ -5,13 +5,16 @@ const useStore = create((set) => ({
     codeSmells: {},
     error: '',
     loading: false,
-    
-    detectCodeSmells: async (directory) => {
+    selectedSmells: [],
+
+    setSelectedSmells: (smells) => set({ selectedSmells: smells }),
+
+    detectCodeSmells: async (directory, selectedSmells) => {
         set({ error: '' });
         set({ loading: true });
         set({ codeSmells: {} });
         try {
-            const response = await axios.post('http://localhost:5050/detect-code-smells', { path: directory.trim() });
+            const response = await axios.post('http://localhost:5050/detect-code-smells', { path: directory.trim(), selectedSmells });
             if (response.status === 200) {
                 set({ codeSmells: response.data });
             }
