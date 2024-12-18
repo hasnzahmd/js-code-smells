@@ -31,14 +31,14 @@ export function AppSidebar() {
     setSelectedSmellNames(selectAll ? codeSmellTypes.map((item) => item.dataKey) : []);
   };
 
-  const handleDetect = () => {
-    detectCodeSmells(directory, selectedSmellNames);
+  const handleDetect = async () => {
+    await detectCodeSmells(directory, selectedSmellNames);
     const selected = codeSmellTypes.filter((item) => selectedSmellNames.includes(item.dataKey));
     setSelectedSmells(selected);
   };
 
-  const allSelected = selectedSmellNames.length === codeSmellTypes.length;
-  const disabled = !directory || !selectedSmellNames.length
+  const allSelected = selectedSmellNames?.length === codeSmellTypes?.length;
+  const disabled = !directory || !selectedSmellNames?.length
 
   return (
     <Sidebar>

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { codeSmellTypes } from '../utils/constants';
 import useStore from '../store/store';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -13,14 +12,16 @@ import {
   } from "@/components/ui/accordion"  
 
 const CodeSmells = () => {
-    const { codeSmells, selectedSmells, loading } = useStore();
+    const { codeSmells, selectedSmells, loading, error } = useStore();
     const [hasCodeSmells, setHasCodeSmells] = useState(false);
     const [sortedCodeSmells, setSortedCodeSmells] = useState([]);
 
     useEffect(() => {
-        if (Object.keys(codeSmells).length > 0) {
+        if (codeSmells && Object.keys(codeSmells).length > 0 && selectedSmells.length > 0) {
             setHasCodeSmells(true);
             setSortedCodeSmells([...selectedSmells].sort((a, b) => codeSmells[b.dataKey].length - codeSmells[a.dataKey].length));
+        } else {
+            setHasCodeSmells(false);
         }
     }, [codeSmells, selectedSmells]);
 
@@ -35,7 +36,7 @@ const CodeSmells = () => {
                 <div className="gap-4 grid grid-cols-1">
                     {loading ? (
                         <SkeletonCardList count={3} />
-                    ) : hasCodeSmells && (
+                    ) : hasCodeSmells ? (
                         <>
                             {sortedCodeSmells.map(({ type, dataKey, columns, description }) => (
                                 <Accordion type="single" collapsible className="w-full">
@@ -47,9 +48,9 @@ const CodeSmells = () => {
                                                         <div className="flex justify-between w-full">
                                                             <p>{type}</p>
                                                             <span
-                                                                className={`font-medium text-lg ${codeSmells[dataKey].length === 0 ? 'text-blue-500' : 'text-red-500'}`}
+                                                                className={`font-medium text-lg ${codeSmells[dataKey] && codeSmells[dataKey].length === 0 ? 'text-blue-500' : 'text-red-500'}`}
                                                             >
-                                                                {codeSmells[dataKey].length} detected
+                                                                {codeSmells[dataKey] && codeSmells[dataKey].length} detected
                                                             </span>
                                                         </div>
                                                         <p className="font-normal text-base text-gray-500">{description}.</p>
@@ -59,7 +60,7 @@ const CodeSmells = () => {
                                             <AccordionContent>
                                                 <ScrollArea maxHeight="max-h-96">
                                                     <CardContent>
-                                                        {codeSmells[dataKey].length > 0 && renderTable(codeSmells[dataKey], columns)}
+                                                        {(codeSmells[dataKey] && codeSmells[dataKey].length > 0) && renderTable(codeSmells[dataKey], columns)}
                                                     </CardContent>
                                                     <ScrollBar orientation="horizontal" />
                                                 </ScrollArea>
@@ -69,7 +70,13 @@ const CodeSmells = () => {
                                 </Accordion>
                             ))}
                         </>
-                    )}
+                    ) : 
+                        <div className='mt-60'>
+                            <CardHeader>
+                                <CardTitle className="text-center text-lg border-none text-red-500">{error}</CardTitle>
+                            </CardHeader>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
